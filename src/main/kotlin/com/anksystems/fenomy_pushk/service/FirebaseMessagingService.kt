@@ -1,8 +1,7 @@
 package com.anksystems.fenomy_pushk.service
 
 import com.anksystems.fenomy_pushk.firebaseMessaging
-import com.anksystems.fenomy_pushk.pojo.Note
-import com.google.firebase.messaging.FirebaseMessaging
+import com.anksystems.fenomy_pushk.model.Note
 import com.google.firebase.messaging.FirebaseMessagingException
 import com.google.firebase.messaging.Message
 import com.google.firebase.messaging.Notification

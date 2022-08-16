@@ -1,4 +1,4 @@
-package com.anksystems.fenomy_pushk.pojo
+package com.anksystems.fenomy_pushk.model
 
 data class Note (
     val subject: String,

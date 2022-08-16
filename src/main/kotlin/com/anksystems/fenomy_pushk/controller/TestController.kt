@@ -1,14 +1,9 @@
 package com.anksystems.fenomy_pushk.controller
 
-import com.anksystems.fenomy_pushk.pojo.Note
+import com.anksystems.fenomy_pushk.model.Note
 import com.anksystems.fenomy_pushk.service.FirebaseMessagingService
 import com.google.firebase.messaging.FirebaseMessagingException
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.count
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import org.springframework.stereotype.Controller
 import org.springframework.web.bind.annotation.RequestMapping
