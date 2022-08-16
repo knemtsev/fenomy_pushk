@@ -21,6 +21,10 @@ class FirebaseMessagingService {
             .builder()
             .setTitle(note.subject)
             .setBody(note.content ?: note.subject)
+            .apply {
+                note.image?.let { setImage(it)}
+            }
+
             .build()
 
         val message: Message = Message
