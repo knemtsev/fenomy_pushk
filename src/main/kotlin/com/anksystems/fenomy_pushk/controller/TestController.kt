@@ -5,7 +5,6 @@ import com.anksystems.fenomy_pushk.model.PushMessage
 import com.anksystems.fenomy_pushk.service.FirebaseMessagingService
 import com.anksystems.fenomy_pushk.service.SendMessageService
 import com.google.firebase.messaging.FirebaseMessagingException
-import com.google.firebase.messaging.Message
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.springframework.beans.factory.annotation.Autowired
@@ -18,10 +17,9 @@ import java.util.UUID
 
 @Controller
 class TestController(
-    @Autowired
-    val sendMessagingService: SendMessageService
+    @Autowired private val sendMessagingService: SendMessageService,
+    @Autowired private val firebaseService: FirebaseMessagingService
 ) {
-    private val firebaseService: FirebaseMessagingService? by lazy { FirebaseMessagingService() }
 
     @RequestMapping("/send-notification")
     @ResponseBody
@@ -38,7 +36,7 @@ class TestController(
             sendMessagingService.send(
                 PushMessage(
                     id = newId,
-                    token = address,
+                    address = address,
                     note = Note(
                         subject = "Test messsage",
                         content = address.hashCode().toString()
@@ -56,7 +54,14 @@ class TestController(
                 val note = Note("$count Test title $count", "$count Test message body $count")
                 val token =
                     "e-dxmSZ0SCugo3t-y3_GL5:APA91bEBotZ1D7pTYqE1u9VMm5bcMGYO4Xsyy0Ia1vUx5HCkZCI1VsqXxbyJ5sxHQsa2lQ3P4QiQFRmwKdkqHkMCaEoZdKWlJH9d83_bN1WsMTIfUTQBW1FgG4aoEsoMzq7afirvjIdZ"
-                val message = firebaseService!!.sendNotification(note, token)
+
+                val message = firebaseService!!.sendNotification(
+                    PushMessage(
+                    id = UUID.randomUUID().toString(),
+                    address = token,
+                    note = note
+                )
+                )
                 //messages.add(message ?: "<null>")
                 val time = ZonedDateTime.now()
                 println("Send message: $count $time $message")

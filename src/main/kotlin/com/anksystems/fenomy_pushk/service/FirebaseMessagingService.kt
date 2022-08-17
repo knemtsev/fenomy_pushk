@@ -1,30 +1,37 @@
 package com.anksystems.fenomy_pushk.service
 
 import com.anksystems.fenomy_pushk.firebaseMessaging
-import com.anksystems.fenomy_pushk.model.Note
+import com.anksystems.fenomy_pushk.model.PushMessage
+import com.google.firebase.messaging.AndroidConfig
 import com.google.firebase.messaging.FirebaseMessagingException
 import com.google.firebase.messaging.Message
 import com.google.firebase.messaging.Notification
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 
 @Service
-class FirebaseMessagingService {
+class FirebaseMessagingService(
+    @Autowired private val log: LogService,
+) {
     private val firebaseMessaging by lazy { firebaseMessaging() }
 
     @Throws(FirebaseMessagingException::class)
-    fun sendNotification(note: Note?, token: String? = null, topic: String? = null): String? {
+    fun sendNotification(pushMessage: PushMessage): String? {
 
-        if(note==null || (token==null && topic==null)) return null
+        val token = pushMessage.token()
+        val topic = pushMessage.topic()
+        //println("token = $token  topic = $topic")
+
+        if(token==null && topic==null) return null
 
         val notification: Notification = Notification
             .builder()
-            .setTitle(note.subject)
-            .setBody(note.content ?: note.subject)
+            .setTitle(pushMessage.note.subject)
+            .setBody(pushMessage.note.content ?: pushMessage.note.subject)
             .apply {
-                note.image?.let { setImage(it)}
+                pushMessage.note.image?.let { setImage(it)}
             }
-
             .build()
 
         val message: Message = Message
@@ -32,7 +39,13 @@ class FirebaseMessagingService {
                 token?.let { setToken(it) } ?: setTopic(topic)
             }
             .setNotification(notification)
-            .apply { note.data?.let { putAllData(it) }  }
+            .apply { pushMessage.note.data?.let { putAllData(it) }  }
+            .setAndroidConfig(
+                AndroidConfig.builder()
+                    .setCollapseKey(pushMessage.note.collapseKey)
+                    .setPriority(pushMessage.note.getPriority())
+                    .build()
+            )
             .build()
         return firebaseMessaging!!.send(message)
     }

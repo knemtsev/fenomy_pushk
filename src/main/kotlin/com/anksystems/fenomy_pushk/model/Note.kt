@@ -1,8 +1,27 @@
 package com.anksystems.fenomy_pushk.model
 
-data class Note (
+import com.google.firebase.messaging.AndroidConfig
+import com.google.firebase.messaging.AndroidConfig.Priority
+
+data class Note(
     val subject: String,
     val content: String? = null,
     val data: Map<String, String>? = null,
     val image: String? = null,
-)
+    val priority: String = DEF_PRIORITY,
+    val collapseKey: String = DEF_COLLAPSE_KEY,
+) {
+    companion object {
+        const val DEF_PRIORITY = "normal"
+        const val DEF_COLLAPSE_KEY = "notification"
+    }
+
+    fun getPriority(): Priority =
+        when(priority) {
+            "normal" -> Priority.NORMAL
+            "high" -> Priority.HIGH
+            else -> Priority.NORMAL
+        }
+
+
+}

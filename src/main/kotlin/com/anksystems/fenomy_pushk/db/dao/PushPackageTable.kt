@@ -1,4 +1,4 @@
-package com.anksystems.fenomy_pushk.db.dto
+package com.anksystems.fenomy_pushk.db.dao
 
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.javatime.datetime
