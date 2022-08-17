@@ -1,9 +1,7 @@
-package com.anksystems.fenomy_pushk.db
+package com.anksystems.fenomy_pushk.service
 
 import com.anksystems.fenomy_pushk.Properties
 import com.anksystems.fenomy_pushk.model.NotifyMessage
-import com.anksystems.fenomy_pushk.service.LogService
-import com.anksystems.fenomy_pushk.service.SendMessageService
 import com.impossibl.postgres.api.jdbc.PGConnection
 import com.impossibl.postgres.api.jdbc.PGNotificationListener
 import com.zaxxer.hikari.HikariConfig
@@ -17,7 +15,6 @@ import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.Database
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.env.Environment
-import org.springframework.jdbc.datasource.DataSourceUtils
 import org.springframework.stereotype.Service
 import java.sql.SQLException
 
@@ -36,7 +33,7 @@ class PGService(
             username = props.dbUser
             password = props.dbPassword
             driverClassName = env.getProperty("spring.datasource.driver-class-name")
-            keepaliveTime = 60000
+            //keepaliveTime = 60000
 
         }
     }
@@ -74,13 +71,14 @@ class PGService(
         val notificationListener = object: PGNotificationListener {
             override fun notification(processId: Int, channelName: String, payload: String) {
                 //println("Received from PG: $processId, $channelName")
-                log.d("Received from PG: $processId, $channelName")
+                log.i("Received from PG: $processId, $channelName")
+                log.t("Received from PG: $processId, $channelName $payload")
                 try {
                     val notifyMessage = Json.decodeFromString<NotifyMessage>(payload)
-                    //println("message=$notifyMessage")
+                    log.t("notifyMessage: $notifyMessage")
                     val pushMessage = notifyMessage.toPushMessage()
-                    //println("pushMessage=$pushMessage")
                     log.d("Message id=${pushMessage.id}")
+                    log.t("pushMessage: $pushMessage")
                     sendMessageService.send(pushMessage)
                 } catch (e: Exception) {
                     println(e.message)
@@ -102,6 +100,7 @@ class PGService(
 //            val connection = DataSourceUtils.getConnection(ds).unwrap(PGConnection::class.java)
             //pgConn.notifications.
             pgConn.addNotificationListener(notificationListener)
+            //pgConn.addNotificationListener()
             pgConn.createStatement().use { statement -> statement.execute("LISTEN push;") }
         } catch (e: SQLException) {
             throw RuntimeException(e)
