@@ -26,6 +26,7 @@ class SendMessageService(
     init {
         log.i("${props}")
     }
+
     fun initWorkers() {
         log.i("numWorkers $numWorkers")
     }
