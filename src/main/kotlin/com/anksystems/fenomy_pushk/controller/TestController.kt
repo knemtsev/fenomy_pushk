@@ -33,7 +33,7 @@ class TestController(
         adrs.forEach { address ->
             val newId=UUID.randomUUID().toString()
             messages.add(newId)
-            sendMessagingService.send(
+            sendMessagingService.sendPush(
                 PushMessage(
                     id = newId,
                     address = address,

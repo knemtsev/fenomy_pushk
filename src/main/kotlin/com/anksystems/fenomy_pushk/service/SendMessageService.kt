@@ -1,11 +1,14 @@
 package com.anksystems.fenomy_pushk.service
 
 import com.anksystems.fenomy_pushk.Properties
+import com.anksystems.fenomy_pushk.lib.ConcurrentQueue
 import com.anksystems.fenomy_pushk.model.PushMessage
+import com.anksystems.fenomy_pushk.model.PushMessageStatus
+import com.anksystems.fenomy_pushk.model.PushStatus
 import com.google.firebase.messaging.FirebaseMessagingException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
@@ -18,28 +21,46 @@ class SendMessageService(
     @Autowired private val fms: FirebaseMessagingService,
     @Autowired private val log: LogService,
 ) {
-    val serviceScope = CoroutineScope(Dispatchers.IO)
-    val outQueue = Channel<PushMessage>()
-    val numWorkers = props.sendWorkers
+    companion object {
+        const val UPDATE_STATUS_MAX_RECORDS = 100
+    }
 
+    private val serviceScope = CoroutineScope(Dispatchers.IO)
+    private val numWorkers = props.sendWorkers
+
+    private val queueToSend = ConcurrentQueue<PushMessage>()
+    private val queueToUpdateStatus = ConcurrentQueue<PushMessageStatus>()
 
     init {
         log.i("${props}")
+        initService()
     }
 
-    fun initWorkers() {
-        log.i("numWorkers $numWorkers")
+    fun getQueueToUpdateStatus() = queueToUpdateStatus
+
+    private fun initService() {
+        serviceScope.launch {
+            do {
+                sendPush(queueToSend.get())
+            } while (true)
+        }
+
     }
 
+    suspend fun send(message: PushMessage) {
+        queueToSend.put(message)
+    }
 
-    fun send(message: PushMessage) {
+    fun sendPush(message: PushMessage) {
         serviceScope.launch {
             val startTime = ZonedDateTime.now()
             try {
                 val result = fms.sendNotification(message)
                 val interval = ChronoUnit.MILLIS.between(startTime, ZonedDateTime.now())
+                queueToUpdateStatus.put(PushMessageStatus(message.id, PushStatus.SUBMITTED))
                 log.d("[$interval ms] OK: $result")
             } catch (e: FirebaseMessagingException) {
+                queueToUpdateStatus.put(PushMessageStatus(message.id, PushStatus.FAILED))
                 val interval = ChronoUnit.MILLIS.between(startTime, ZonedDateTime.now())
                 log.e("[$interval ms] ERROR: ${e.messagingErrorCode}")
             }
