@@ -34,7 +34,7 @@ class PGListenerService(
 ) {
 
     companion object {
-        const val RESTART_LISTENER_PERIOD = 60000L // в миллисекундах
+        const val RESTART_LISTENER_PERIOD = 300_000L // 5 минут в миллисекундах
     }
 
     val config by lazy {
