@@ -24,7 +24,7 @@ data class NotifyMessage(
         note = Note (
             subject = subject,
             content = content,
-            data = Json.decodeFromString<Map<String, String>>(data.toString()),
+            data = Json.decodeFromString<Map<String, String?>>(data.toString()),
             image = image,
             collapseKey = collapseKey,
             priority = priority,

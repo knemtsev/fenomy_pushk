@@ -6,6 +6,7 @@ import com.google.firebase.messaging.AndroidConfig
 import com.google.firebase.messaging.FirebaseMessagingException
 import com.google.firebase.messaging.Message
 import com.google.firebase.messaging.Notification
+import com.mchange.v2.collection.MapEntry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -23,14 +24,14 @@ class FirebaseMessagingService(
         val topic = pushMessage.topic()
         //println("token = $token  topic = $topic")
 
-        if(token==null && topic==null) return null
+        if (token == null && topic == null) return null
 
         val notification: Notification = Notification
             .builder()
             .setTitle(pushMessage.note.subject)
             .setBody(pushMessage.note.content ?: pushMessage.note.subject)
             .apply {
-                pushMessage.note.image?.let { setImage(it)}
+                pushMessage.note.image?.let { setImage(it) }
             }
             .build()
 
@@ -39,13 +40,17 @@ class FirebaseMessagingService(
                 token?.let { setToken(it) } ?: setTopic(topic)
             }
             .setNotification(notification)
-            .apply { pushMessage.note.data?.let { putAllData(it) }  }
             .setAndroidConfig(
                 AndroidConfig.builder()
                     .setCollapseKey(pushMessage.note.collapseKey)
                     .setPriority(pushMessage.note.getPriority())
                     .build()
             )
+            .apply {
+                pushMessage.note.data?.let {
+                    putAllData(it.map { it.key to (it.value ?: "null") }.toMap())
+                }
+            }
             .build()
         return firebaseMessaging!!.send(message)
     }
