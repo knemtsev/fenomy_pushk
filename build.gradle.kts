@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.jetbrains.kotlin.kapt3.base.Kapt.kapt
 
 plugins {
     id("org.springframework.boot") version "2.7.2"
@@ -6,6 +7,7 @@ plugins {
     kotlin("jvm") version "1.7.10"
     kotlin("plugin.spring") version "1.7.10"
     kotlin("plugin.serialization") version "1.7.10"
+    kotlin("kapt") version "1.7.10"
 }
 
 group = "com.anksystems"
@@ -50,6 +52,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
     val configurationProcessor ="org.springframework.boot:spring-boot-configuration-processor:2.7.2"
+    kapt(configurationProcessor)
     annotationProcessor(configurationProcessor)
 
     implementation("com.impossibl.pgjdbc-ng:pgjdbc-ng:0.8.9")

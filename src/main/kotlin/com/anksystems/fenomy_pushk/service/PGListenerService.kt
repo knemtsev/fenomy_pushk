@@ -8,10 +8,7 @@ import com.impossibl.postgres.api.jdbc.PGConnection
 import com.impossibl.postgres.api.jdbc.PGNotificationListener
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
@@ -74,11 +71,13 @@ class PGListenerService(
         log.i("${this.javaClass.name} start")
 
         if (areThereNewPushes()) {
-            processNewPushes()
+            serviceScope.launch {
+                processNewPushes()
+                initListener()
+            }
+        } else {
+            initListener()
         }
-
-        initListener()
-
         // обновление статуса пушей
         serviceScope.launch {
             while (true) {
@@ -124,33 +123,35 @@ class PGListenerService(
         return count
     }
 
-    private fun processNewPushes() {
+    private suspend fun processNewPushes() {
         try {
             Database.connect(ds)
-            transaction {
-                PushTable.select { PushTable.status.eq(PushStatus.NEW.status) }
-                    //.limit(PROCESS_NEW_PUSHES_PACKAGE_SIZE)
-                    .forEach { row ->
-                        sendMessageService.sendPush(
-                            PushMessage(
-                                id = row[PushTable.id].toString(),
-                                address = row[PushTable.address],
-                                note = Note(
-                                    subject = row[PushTable.subject] ?: "",
-                                    content = row[PushTable.content],
-                                    data = row[PushTable.data]?.let { json.decodeFromStringSafe<Map<String, String?>>(it) },
-                                    image = row[PushTable.image],
-                                    priority = row[PushTable.priority],
-                                    collapseKey = row[PushTable.collapseKey]
-                                )
+            //transaction {
+            PushTable.select { PushTable.status.eq(PushStatus.NEW.status) }
+                //.limit(PROCESS_NEW_PUSHES_PACKAGE_SIZE)
+                .forEach { row ->
+                    sendMessageService.send(
+                        PushMessage(
+                            id = row[PushTable.id].toString(),
+                            address = row[PushTable.address],
+                            note = Note(
+                                subject = row[PushTable.subject] ?: "",
+                                content = row[PushTable.content],
+                                data = row[PushTable.data]?.let {
+                                    json.decodeFromStringSafe<Map<String, String?>>(
+                                        it
+                                    )
+                                },
+                                image = row[PushTable.image],
+                                priority = row[PushTable.priority],
+                                collapseKey = row[PushTable.collapseKey]
                             )
                         )
-                    }
-            }
+                    )
+                }
         } catch (e: SQLException) {
             log.e(e.message.toString())
         }
-
     }
 
     var pgConn: PGConnection? = null

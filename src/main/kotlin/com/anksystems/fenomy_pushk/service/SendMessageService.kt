@@ -8,8 +8,8 @@ import com.anksystems.fenomy_pushk.model.PushStatus
 import com.google.firebase.messaging.FirebaseMessagingException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.ZonedDateTime
@@ -21,15 +21,10 @@ class SendMessageService(
     @Autowired private val fms: FirebaseMessagingService,
     @Autowired private val log: LogService,
 ) {
-    companion object {
-        const val UPDATE_STATUS_MAX_RECORDS = 100
-    }
-
     private val serviceScope = CoroutineScope(Dispatchers.IO)
-    private val numWorkers = props.sendWorkers
 
-    private val queueToSend = ConcurrentQueue<PushMessage>()
-    private val queueToUpdateStatus = ConcurrentQueue<PushMessageStatus>()
+    private val queueToSend = ConcurrentQueue<PushMessage>(props.queueSendPushSize)
+    private val queueToUpdateStatus = ConcurrentQueue<PushMessageStatus>(props.queueUpdateStatusSize)
 
     init {
         log.i("${props}")
@@ -51,7 +46,9 @@ class SendMessageService(
         queueToSend.put(message)
     }
 
-    fun sendPush(message: PushMessage) {
+    private val pushSendingPool = Semaphore(props.poolSendPushSize, 0)
+    private suspend fun sendPush(message: PushMessage) {
+        pushSendingPool.acquire()
         serviceScope.launch {
             val startTime = ZonedDateTime.now()
             try {
@@ -64,6 +61,7 @@ class SendMessageService(
                 val interval = ChronoUnit.MILLIS.between(startTime, ZonedDateTime.now())
                 log.e("[$interval ms] ERROR: ${e.messagingErrorCode}")
             }
+            pushSendingPool.release()
         }
     }
 }

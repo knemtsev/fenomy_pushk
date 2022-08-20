@@ -5,15 +5,12 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withLock
 import java.util.*
 
-class ConcurrentQueue<T : Searchable<T>> {
-    companion object {
-        const val MAX_QUEUE_SIZE = 10000
-    }
+class ConcurrentQueue<T : Searchable<T>>(private val maxSize: Int = 10000) {
 
     private val mutex: Mutex = Mutex()
     private val queue: Queue<T> = LinkedList()
-    private val getSemaphore = Semaphore(MAX_QUEUE_SIZE, MAX_QUEUE_SIZE)
-    private val putSemaphore = Semaphore(MAX_QUEUE_SIZE)
+    private val getSemaphore = Semaphore(this.maxSize, this.maxSize)
+    private val putSemaphore = Semaphore(this.maxSize)
 
     suspend fun put(element: T) {
         putSemaphore.acquire()
