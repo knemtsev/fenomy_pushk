@@ -17,9 +17,9 @@ import org.springframework.stereotype.Component
 import java.io.IOException
 
 
-@PropertySource("application.properties")
+//@PropertySource("application.properties")
 @EnableConfigurationProperties(Properties::class)
-@SpringBootApplication
+@SpringBootApplication()
 @ConfigurationPropertiesScan("com.anksystems.fenomy_pushk")
 @Component
 class FenomyPushkApplication

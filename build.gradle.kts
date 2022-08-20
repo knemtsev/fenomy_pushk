@@ -23,7 +23,7 @@ dependencies {
     //implementation("org.springframework.boot:spring-boot-starter-mail")
     //implementation("org.springframework.boot:spring-boot-starter-quartz")
     implementation("org.springframework.boot:spring-boot-starter-jdbc")
-    //implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-logging")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
