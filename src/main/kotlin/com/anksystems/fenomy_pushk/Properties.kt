@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConstructorBinding
 @ConstructorBinding
 @ConfigurationProperties("push")
 data class Properties @ConstructorBinding constructor(
+    var appName: String = "pushk",
     var poolSendPushSize: Int = 1000,
     var queueUpdateStatusSize: Int = 100_000,
     var queueSendPushSize: Int = 100_000,
