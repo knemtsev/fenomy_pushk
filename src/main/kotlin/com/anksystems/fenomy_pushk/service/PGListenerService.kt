@@ -95,15 +95,17 @@ class PGListenerService(
 
         // переиодический перезапуск слушателя
         serviceScope.launch {
-            delay(RESTART_LISTENER_PERIOD)
-            val interval = ChronoUnit.MILLIS.between(lastNotificationTime, ZonedDateTime.now())
-            if (interval > RESTART_LISTENER_PERIOD) {
-                log.d("RESTART_LISTENER_PERIOD < $interval ms")
-                if (areThereNewPushes()) {
-                    log.e("RESTART. Are there new pushes, but listener did not process them. Restart listener.")
-                    resetListener()
-                    processNewPushes()
-                    initListener()
+            while (true) {
+                delay(RESTART_LISTENER_PERIOD)
+                val interval = ChronoUnit.MILLIS.between(lastNotificationTime, ZonedDateTime.now())
+                if (interval > RESTART_LISTENER_PERIOD) {
+                    log.d("RESTART_LISTENER_PERIOD < $interval ms")
+                    if (areThereNewPushes()) {
+                        log.e("RESTART. Are there new pushes, but listener did not process them. Restart listener.")
+                        resetListener()
+                        processNewPushes()
+                        initListener()
+                    }
                 }
             }
         }
