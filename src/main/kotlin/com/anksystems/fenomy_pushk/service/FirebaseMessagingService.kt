@@ -6,7 +6,6 @@ import com.google.firebase.messaging.AndroidConfig
 import com.google.firebase.messaging.FirebaseMessagingException
 import com.google.firebase.messaging.Message
 import com.google.firebase.messaging.Notification
-import com.mchange.v2.collection.MapEntry
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
@@ -52,7 +51,9 @@ class FirebaseMessagingService(
                 }
             }
             .build()
-        return firebaseMessaging!!.send(message)
+
+        val result = firebaseMessaging!!.send(message)
+        return result
     }
 
 }
