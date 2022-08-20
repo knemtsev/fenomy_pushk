@@ -1,12 +1,17 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
+    application
     id("org.springframework.boot") version "2.7.2"
     id("io.spring.dependency-management") version "1.0.12.RELEASE"
     kotlin("jvm") version "1.7.10"
     kotlin("plugin.spring") version "1.7.10"
     kotlin("plugin.serialization") version "1.7.10"
     kotlin("kapt") version "1.7.10"
+}
+
+application {
+    mainClass.set("com.anksystems.fenomy_pushk.FenomyPushkApplicationKt")
 }
 
 group = "com.anksystems"
