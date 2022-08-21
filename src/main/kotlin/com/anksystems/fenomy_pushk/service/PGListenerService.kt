@@ -177,14 +177,14 @@ class PGListenerService(
             override fun notification(processId: Int, channelName: String, payload: String) {
                 lastNotificationTime = ZonedDateTime.now()
                 //println("Received from PG: $processId, $channelName")
-                log.i("Received from PG: $processId, $channelName")
+                log.d("Received from PG: $processId, $channelName")
                 log.t("Payload: $payload")
                 try {
                     val notifyMessage = json.decodeFromStringSafe<NotifyMessage>(payload)
                     if (notifyMessage != null) {
                         log.t("notifyMessage: $notifyMessage")
                         val pushMessage = notifyMessage.toPushMessage()
-                        log.d("Message id=${pushMessage.id}")
+                        log.d("Message ${pushMessage.note.collapseKey} id=${pushMessage.id} ")
                         log.t("pushMessage: $pushMessage")
                         serviceScope.launch {
                             sendMessageService.send(pushMessage)
