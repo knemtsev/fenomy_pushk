@@ -123,30 +123,32 @@ class PGListenerService(
 
     private suspend fun processNewPushes() {
         try {
+            lateinit var listPushes: List<PushMessage>
             Database.connect(ds)
-            //transaction {
-            PushTable.select { PushTable.status.eq(PushStatus.NEW.status) }
-                //.limit(PROCESS_NEW_PUSHES_PACKAGE_SIZE)
-                .forEach { row ->
-                    sendMessageService.send(
-                        PushMessage(
-                            id = row[PushTable.id].toString(),
-                            address = row[PushTable.address],
-                            note = Note(
-                                subject = row[PushTable.subject] ?: "",
-                                content = row[PushTable.content],
-                                data = row[PushTable.data]?.let {
-                                    json.decodeFromStringSafe<Map<String, String?>>(
-                                        it
-                                    )
-                                },
-                                image = row[PushTable.image],
-                                priority = row[PushTable.priority],
-                                collapseKey = row[PushTable.collapseKey]
-                            )
+            transaction {
+                listPushes = PushTable.select { PushTable.status.eq(PushStatus.NEW.status) }.map { row ->
+                    PushMessage(
+                        id = row[PushTable.id].toString(),
+                        address = row[PushTable.address],
+                        note = Note(
+                            subject = row[PushTable.subject] ?: "",
+                            content = row[PushTable.content],
+                            data = row[PushTable.data]?.let {
+                                json.decodeFromStringSafe<Map<String, String?>>(
+                                    it
+                                )
+                            },
+                            image = row[PushTable.image],
+                            priority = row[PushTable.priority],
+                            collapseKey = row[PushTable.collapseKey]
                         )
                     )
                 }
+            }
+            //.limit(PROCESS_NEW_PUSHES_PACKAGE_SIZE)
+            listPushes.forEach { push ->
+                sendMessageService.send(push)
+            }
         } catch (e: SQLException) {
             log.e(e.message.toString())
         }
@@ -237,6 +239,7 @@ class PGListenerService(
             log.e(e.message.toString())
         }
     }
+
     fun removeAddresses(addressList: List<String>) {
         try {
             Database.connect(ds)
@@ -249,7 +252,6 @@ class PGListenerService(
             log.e(e.message.toString())
         }
     }
-
 
 
 }
