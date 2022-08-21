@@ -1,6 +1,7 @@
 package com.anksystems.fenomy_pushk.service
 
 import com.anksystems.fenomy_pushk.Properties
+import com.anksystems.fenomy_pushk.db.dao.DeviceTable
 import com.anksystems.fenomy_pushk.db.dao.PushTable
 import com.anksystems.fenomy_pushk.ext.decodeFromStringSafe
 import com.anksystems.fenomy_pushk.model.*
@@ -30,12 +31,6 @@ class PGListenerService(
     @Autowired private val sendMessageService: SendMessageService,
     @Autowired private val log: LogService,
 ) {
-
-    companion object {
-        const val RESTART_LISTENER_PERIOD = 60_000L // 1 минута в миллисекундах
-        const val UPDATE_PUSH_STATUS_PACKAGE_SIZE = 100
-        const val PROCESS_NEW_PUSHES_PACKAGE_SIZE = 1000
-    }
 
     private val config by lazy {
         HikariConfig().apply {
@@ -88,7 +83,7 @@ class PGListenerService(
                     val next = queueToUpdateStatus.getOrNull()
                     next?.let { listToUpdate.add(next) }
                     count += 1
-                } while (next != null && count < UPDATE_PUSH_STATUS_PACKAGE_SIZE) // обновляем пакетами
+                } while (next != null && count < props.statusUpdatePackageSize) // обновляем пакетами
                 updateStatus(listToUpdate)
             }
         }
@@ -96,11 +91,12 @@ class PGListenerService(
         // переиодический перезапуск слушателя
         serviceScope.launch {
             while (true) {
-                delay(RESTART_LISTENER_PERIOD)
+                delay(props.listenerTestRestartPeriod)
+                log.d("STATS: ${sendMessageService.getStats()}")
                 val interval = ChronoUnit.MILLIS.between(lastNotificationTime, ZonedDateTime.now())
-                if (interval > RESTART_LISTENER_PERIOD) {
-                    log.d("RESTART_LISTENER_PERIOD < $interval ms")
+                if (interval > props.listenerTestRestartPeriod) {
                     if (areThereNewPushes()) {
+                        log.d("TEST period: $props.listenerTestRestartPeriod < $interval ms")
                         log.e("RESTART. Are there new pushes, but listener did not process them. Restart listener.")
                         resetListener()
                         processNewPushes()
@@ -223,7 +219,10 @@ class PGListenerService(
         messageStatusList.filter { it.status == PushStatus.SUBMITTED }.takeIf { it.isNotEmpty() }
             ?.let { setStatus(it, PushStatus.SUBMITTED.status) }
         messageStatusList.filter { it.status == PushStatus.FAILED }.takeIf { it.isNotEmpty() }
-            ?.let { setStatus(it, PushStatus.FAILED.status) }
+            ?.let { list ->
+                setStatus(list, PushStatus.FAILED.status)
+                removeAddresses(list.map { it.address!! }.distinct())
+            }
     }
 
     fun setStatus(messageStatusList: List<PushMessageStatus>, status: String) {
@@ -238,5 +237,19 @@ class PGListenerService(
             log.e(e.message.toString())
         }
     }
+    fun removeAddresses(addressList: List<String>) {
+        try {
+            Database.connect(ds)
+            transaction {
+                DeviceTable.update({ DeviceTable.address.inList(addressList) }) {
+                    it[address] = null
+                }
+            }
+        } catch (e: SQLException) {
+            log.e(e.message.toString())
+        }
+    }
+
+
 
 }

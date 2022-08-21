@@ -14,6 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicLong
 
 @Service
 class SendMessageService(
@@ -25,6 +27,12 @@ class SendMessageService(
 
     private val queueToSend = ConcurrentQueue<PushMessage>(props.queueSendPushSize)
     private val queueToUpdateStatus = ConcurrentQueue<PushMessageStatus>(props.queueUpdateStatusSize)
+
+    // statistic
+    private var sentCount = AtomicInteger(0)
+    private var sentCountSuccess = AtomicInteger(0)
+    private var sentCountFailed = AtomicInteger(0)
+    private var sentTotalTimeMs = AtomicLong(0L)
 
     init {
         log.i("${props}")
@@ -56,12 +64,22 @@ class SendMessageService(
                 val interval = ChronoUnit.MILLIS.between(startTime, ZonedDateTime.now())
                 queueToUpdateStatus.put(PushMessageStatus(message.id, PushStatus.SUBMITTED))
                 log.d("[$interval ms] OK: $result")
+                sentCount.incrementAndGet()
+                sentCountSuccess.incrementAndGet()
+                sentTotalTimeMs.addAndGet(interval)
             } catch (e: FirebaseMessagingException) {
-                queueToUpdateStatus.put(PushMessageStatus(message.id, PushStatus.FAILED))
+                queueToUpdateStatus.put(PushMessageStatus(message.id, PushStatus.FAILED, address = message.address))
                 val interval = ChronoUnit.MILLIS.between(startTime, ZonedDateTime.now())
                 log.e("[$interval ms] ERROR: ${e.messagingErrorCode}")
+                sentCount.incrementAndGet()
+                sentCountFailed.incrementAndGet()
+                sentTotalTimeMs.addAndGet(interval)
             }
             pushSendingPool.release()
         }
+    }
+
+    fun getStats(): String {
+        return "Total: ${sentCount.get()} +${sentCountSuccess.get()} -${sentCountFailed.get()} avg: ${sentTotalTimeMs.get()/sentCount.get()}"
     }
 }
