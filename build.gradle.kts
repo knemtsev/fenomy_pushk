@@ -79,5 +79,5 @@ tasks.bootJar {
 }
 
 tasks.create("jarPath") {
-    println("build/libs/$archivesName-$version.jar")
+    println("$archivesName-$version.jar")
 }

@@ -1,12 +1,23 @@
 #!/bin/bash
 
-build_jar=`./gradlew -q jarPath`
+jar_name=`./gradlew -q jarPath`
+build_jar="build/libs/$jar_name"
+service_name=pushk
+service_link="/etc/init.d/$service_name"
+jar_path="/home/nemtsev/bin/$jar_name"
 
 set -e
 trap 'echo "FAILED"' ERR
 
 ./gradlew bootJar
 
-[ ! -f $build_jar ] && echo "$build_jar not exists" && exit 1
+[ ! -f "$build_jar" ] && echo "$build_jar not exists" && exit 1
 
-cp -f $build_jar /home/nemtsev/bin/
+[ -f "$service_link" ] && sudo $service_link stop && sudo rm $service_link
+
+cp -f $build_jar $jar_path
+
+sudo ln -s $jar_path $service_link
+
+$service_link start
+
