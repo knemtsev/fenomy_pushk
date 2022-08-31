@@ -8,3 +8,5 @@ trap 'echo "FAILED"' ERR
 ./gradlew bootJar
 
 [ ! -f $build_jar ] && echo "$build_jar not exists" && exit 1
+
+ls -l $build_jar
