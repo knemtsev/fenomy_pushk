@@ -80,6 +80,6 @@ class SendMessageService(
     }
 
     fun getStats(): String {
-        return "Total: ${sentCount.get()} +${sentCountSuccess.get()} -${sentCountFailed.get()} avg: ${sentTotalTimeMs.get()/sentCount.get()}"
+        return "Total: ${sentCount.get()} +${sentCountSuccess.get()} -${sentCountFailed.get()} avg: ${sentTotalTimeMs.get()/(sentCount.get().takeIf { it!=0 } ?: 1)}"
     }
 }
