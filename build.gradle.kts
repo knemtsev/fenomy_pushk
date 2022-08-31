@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.archivesName
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -75,4 +76,8 @@ tasks.withType<Test> {
 
 tasks.bootJar {
     launchScript()
+}
+
+tasks.create("jarPath") {
+    println("build/libs/$archivesName-$version.jar")
 }

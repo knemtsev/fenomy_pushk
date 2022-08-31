@@ -1,0 +1,10 @@
+#!/bin/bash
+
+build_jar=`./gradlew -q jarPath`
+
+set -e
+trap 'echo "FAILED"' ERR
+
+./gradlew bootJar
+
+[ ! -f $build_jar ] && echo "$build_jar not exists" && exit 1
