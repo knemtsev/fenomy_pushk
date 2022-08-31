@@ -9,4 +9,4 @@ trap 'echo "FAILED"' ERR
 
 [ ! -f $build_jar ] && echo "$build_jar not exists" && exit 1
 
-ls -l $build_jar
+cp -f $build_jar /home/nemtsev/bin/
