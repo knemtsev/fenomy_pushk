@@ -19,5 +19,7 @@ cp -f $build_jar $jar_path
 
 sudo ln -s $jar_path $service_link
 
+sudo systemctl daemon-reload
+
 sudo systemctl start $service_name
 

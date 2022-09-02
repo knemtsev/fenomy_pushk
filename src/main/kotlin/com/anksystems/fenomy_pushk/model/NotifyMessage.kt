@@ -16,7 +16,7 @@ data class NotifyMessage(
     @SerialName("data")             val data: JsonElement,
     @SerialName("image")            val image: String? = null,
     @SerialName("priority")         val priority: String = Note.DEF_PRIORITY,
-    @SerialName("collapse_key")     val collapseKey: String = Note.DEF_COLLAPSE_KEY,
+    @SerialName("collapse_key")     val collapseKey: String? = null,
 ) {
     fun toPushMessage() = PushMessage(
         id = id,

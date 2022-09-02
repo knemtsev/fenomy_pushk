@@ -9,11 +9,10 @@ data class Note(
     val data: Map<String, String?>? = null,
     val image: String? = null,
     val priority: String = DEF_PRIORITY,
-    val collapseKey: String = DEF_COLLAPSE_KEY,
+    val collapseKey: String? = null,
 ) {
     companion object {
         const val DEF_PRIORITY = "normal"
-        const val DEF_COLLAPSE_KEY = "notification"
     }
 
     fun getPriority(): Priority =
