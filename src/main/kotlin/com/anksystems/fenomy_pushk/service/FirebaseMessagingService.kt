@@ -41,7 +41,9 @@ class FirebaseMessagingService(
             .setNotification(notification)
             .setAndroidConfig(
                 AndroidConfig.builder()
-                    .setCollapseKey(pushMessage.note.collapseKey)
+                    .apply {
+                        if(pushMessage.note.collapseKey!="notification") setCollapseKey(pushMessage.note.collapseKey)
+                    }
                     .setPriority(pushMessage.note.getPriority())
                     .build()
             )
