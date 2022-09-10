@@ -1,5 +1,7 @@
 import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.archivesName
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.FileOutputStream
+import java.util.Properties
 
 plugins {
     application
@@ -16,7 +18,7 @@ application {
 }
 
 group = "com.anksystems"
-version = "0.0.3"
+version = "0.0.4"
 java.sourceCompatibility = JavaVersion.VERSION_17
 
 repositories {
@@ -44,10 +46,10 @@ dependencies {
 //    runtimeOnly("org.postgresql:postgresql:")
 
     val exposedVer = "0.39.2"
-    implementation("org.jetbrains.exposed:exposed-core:0.39.2")
-    implementation("org.jetbrains.exposed:exposed-dao:0.39.2")
-    implementation("org.jetbrains.exposed:exposed-jdbc:0.39.2")
-    implementation("org.jetbrains.exposed:exposed-java-time:0.39.2")
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVer")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVer")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVer")
+    implementation("org.jetbrains.exposed:exposed-java-time:$exposedVer")
 
     implementation("com.zaxxer:HikariCP:5.0.1")
 
@@ -80,4 +82,35 @@ tasks.bootJar {
 
 tasks.create("jarPath") {
     println("$archivesName-$version.jar")
+}
+
+val generatedVersionDir = "$buildDir/generated-version"
+val resourceDir = "$buildDir/resources/main"
+val versionProperties = "version.properties"
+
+sourceSets {
+    main {
+        kotlin {
+            output.dir(generatedVersionDir)
+        }
+    }
+}
+
+tasks.register("generateVersionProperties") {
+    doLast {
+
+//            val propertiesFile = file("$generatedVersionDir/$versionProperties")
+//            propertiesFile.parentFile.mkdirs()
+            val properties = Properties()
+            properties.setProperty("version", "$version")
+//            properties.store(FileOutputStream(propertiesFile), null)
+
+            val resPropertiesFile = file("${resourceDir}/$versionProperties")
+            resPropertiesFile.parentFile.mkdirs()
+            properties.store(FileOutputStream(resPropertiesFile), null)
+    }
+}
+
+tasks.named("processResources") {
+    dependsOn("generateVersionProperties")
 }

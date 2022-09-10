@@ -22,37 +22,23 @@ class FirebaseMessagingService(
         val token = pushMessage.token()
         val topic = pushMessage.topic()
         //println("token = $token  topic = $topic")
+        log.t("token=$token topic=$topic $pushMessage")
 
         if (token == null && topic == null) return null
-
-        val notification: Notification = Notification
-            .builder()
-            //.setTitle(pushMessage.note.subject)
-            .setBody(pushMessage.note.content ?: pushMessage.note.subject)
-            .apply {
-                pushMessage.note.image?.let { setImage(it) }
-            }
-            .build()
-
-        log.d("collapse key=${pushMessage.note.collapseKey}")
-
-        val androidConfig =
-            if(pushMessage.note.collapseKey!=null && pushMessage.note.collapseKey!="notification")
-                AndroidConfig.builder()
-                    .setCollapseKey(pushMessage.note.collapseKey)
-                    .setPriority(pushMessage.note.getPriority())
-                    .build()
-            else
-                AndroidConfig.builder()
-                    .setPriority(pushMessage.note.getPriority())
-                    .build()
 
         val message: Message = Message
             .builder().apply {
                 token?.let { setToken(it) } ?: setTopic(topic)
             }
-            .setNotification(notification)
-            .setAndroidConfig(androidConfig)
+            .setNotification(Notification.builder().build())
+            .setAndroidConfig(AndroidConfig.builder()
+                .apply {
+                    if(pushMessage.note.collapseKey!=null && pushMessage.note.collapseKey!="notification")
+                        setCollapseKey(pushMessage.note.collapseKey)
+                }
+                .setPriority(pushMessage.note.getPriority())
+                .build()
+            )
             .apply {
                 pushMessage.note.data?.let {
                     putAllData(it.map { it.key to (it.value ?: "null") }.toMap())

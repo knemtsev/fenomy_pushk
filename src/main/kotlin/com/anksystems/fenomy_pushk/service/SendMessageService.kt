@@ -1,6 +1,6 @@
 package com.anksystems.fenomy_pushk.service
 
-import com.anksystems.fenomy_pushk.Properties
+import com.anksystems.fenomy_pushk.MyProperties
 import com.anksystems.fenomy_pushk.lib.ConcurrentQueue
 import com.anksystems.fenomy_pushk.model.PushMessage
 import com.anksystems.fenomy_pushk.model.PushMessageStatus
@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 @Service
 class SendMessageService(
-    @Autowired private val props: Properties,
+    @Autowired private val props: MyProperties,
     @Autowired private val fms: FirebaseMessagingService,
     @Autowired private val log: LogService,
 ) {

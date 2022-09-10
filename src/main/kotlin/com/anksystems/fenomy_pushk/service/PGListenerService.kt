@@ -1,6 +1,7 @@
 package com.anksystems.fenomy_pushk.service
 
-import com.anksystems.fenomy_pushk.Properties
+import com.anksystems.fenomy_pushk.FenomyPushkApplication
+import com.anksystems.fenomy_pushk.MyProperties
 import com.anksystems.fenomy_pushk.db.dao.DeviceTable
 import com.anksystems.fenomy_pushk.db.dao.PushTable
 import com.anksystems.fenomy_pushk.ext.decodeFromStringSafe
@@ -11,7 +12,6 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import kotlinx.coroutines.*
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -26,10 +26,11 @@ import java.util.*
 
 @Service
 class PGListenerService(
-    @Autowired private val props: Properties,
+    @Autowired private val props: MyProperties,
     @Autowired private val env: Environment,
     @Autowired private val sendMessageService: SendMessageService,
     @Autowired private val log: LogService,
+    @Autowired private val app: FenomyPushkApplication
 ) {
 
     private val config by lazy {
@@ -63,7 +64,7 @@ class PGListenerService(
     }
 
     private fun initService() {
-        log.i("${this.javaClass.name} start")
+        log.i("${this.javaClass.name} start ${app.getVersion()}")
 
         if (areThereNewPushes()) {
             serviceScope.launch {
