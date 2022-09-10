@@ -27,29 +27,32 @@ class FirebaseMessagingService(
 
         val notification: Notification = Notification
             .builder()
-            .setTitle(pushMessage.note.subject)
+            //.setTitle(pushMessage.note.subject)
             .setBody(pushMessage.note.content ?: pushMessage.note.subject)
             .apply {
                 pushMessage.note.image?.let { setImage(it) }
             }
             .build()
 
+        log.d("collapse key=${pushMessage.note.collapseKey}")
+
+        val androidConfig =
+            if(pushMessage.note.collapseKey!=null && pushMessage.note.collapseKey!="notification")
+                AndroidConfig.builder()
+                    .setCollapseKey(pushMessage.note.collapseKey)
+                    .setPriority(pushMessage.note.getPriority())
+                    .build()
+            else
+                AndroidConfig.builder()
+                    .setPriority(pushMessage.note.getPriority())
+                    .build()
+
         val message: Message = Message
             .builder().apply {
                 token?.let { setToken(it) } ?: setTopic(topic)
             }
             .setNotification(notification)
-            .setAndroidConfig(
-                AndroidConfig.builder()
-                    .apply {
-                        if(pushMessage.note.collapseKey!=null && pushMessage.note.collapseKey!="notification")  {
-                            log.d("collapse key=${pushMessage.note.collapseKey}")
-                            setCollapseKey(pushMessage.note.collapseKey)
-                        }
-                    }
-                    .setPriority(pushMessage.note.getPriority())
-                    .build()
-            )
+            .setAndroidConfig(androidConfig)
             .apply {
                 pushMessage.note.data?.let {
                     putAllData(it.map { it.key to (it.value ?: "null") }.toMap())
