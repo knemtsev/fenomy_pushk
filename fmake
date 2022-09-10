@@ -1,5 +1,7 @@
 #!/bin/bash
 
+git pull
+
 jar_name=`./gradlew -q jarPath`
 build_jar="build/libs/$jar_name"
 service_name=pushk
@@ -22,4 +24,6 @@ sudo ln -s $jar_path $service_link
 sudo systemctl daemon-reload
 
 sudo systemctl start $service_name
+
+tail -f /var/log/pushk.log
 
