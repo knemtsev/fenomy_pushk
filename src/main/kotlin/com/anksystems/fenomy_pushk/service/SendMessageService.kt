@@ -6,14 +6,13 @@ import com.anksystems.fenomy_pushk.model.PushMessage
 import com.anksystems.fenomy_pushk.model.PushMessageStatus
 import com.anksystems.fenomy_pushk.model.PushStatus
 import com.google.firebase.messaging.FirebaseMessagingException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Semaphore
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 import java.time.ZonedDateTime
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 
@@ -22,7 +21,7 @@ class SendMessageService(
     @Autowired private val props: MyProperties,
     @Autowired private val fms: FirebaseMessagingService,
     @Autowired private val log: LogService,
-) {
+) : BaseService {
     private val serviceScope = CoroutineScope(Dispatchers.IO)
 
     private val queueToSend = ConcurrentQueue<PushMessage>(props.queueSendPushSize)
@@ -41,13 +40,22 @@ class SendMessageService(
 
     fun getQueueToUpdateStatus() = queueToUpdateStatus
 
-    private fun initService() {
+    final override fun initService() {
         serviceScope.launch {
             do {
-                sendPush(queueToSend.get())
+                try {
+                    sendPush(queueToSend.get())
+                } catch (e: Exception) {
+                    log.e(e)
+                    delay(TimeUnit.SECONDS.toMillis(30))
+                }
             } while (true)
         }
 
+    }
+
+    override fun resetService() {
+        serviceScope.cancel()
     }
 
     suspend fun send(message: PushMessage) {
@@ -55,7 +63,9 @@ class SendMessageService(
     }
 
     private val pushSendingPool = Semaphore(props.poolSendPushSize, 0)
+
     private suspend fun sendPush(message: PushMessage) {
+        log.d("pushSendingPool.availablePermits=${pushSendingPool.availablePermits}")
         pushSendingPool.acquire()
         serviceScope.launch {
             val startTime = ZonedDateTime.now()
@@ -82,4 +92,5 @@ class SendMessageService(
     fun getStats(): String {
         return "Total: ${sentCount.get()} +${sentCountSuccess.get()} -${sentCountFailed.get()} avg: ${sentTotalTimeMs.get()/(sentCount.get().takeIf { it!=0 } ?: 1)}"
     }
+
 }
