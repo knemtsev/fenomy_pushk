@@ -1,4 +1,4 @@
-package com.anksystems.fenomy_pushk.lib
+package com.anksystems.lib
 
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore

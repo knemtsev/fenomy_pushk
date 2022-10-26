@@ -1,7 +1,7 @@
 package com.anksystems.fenomy_pushk.service
 
 import com.anksystems.fenomy_pushk.MyProperties
-import com.anksystems.fenomy_pushk.lib.ConcurrentQueue
+import com.anksystems.lib.ConcurrentQueue
 import com.anksystems.fenomy_pushk.model.PushMessage
 import com.anksystems.fenomy_pushk.model.PushMessageStatus
 import com.anksystems.fenomy_pushk.model.PushStatus

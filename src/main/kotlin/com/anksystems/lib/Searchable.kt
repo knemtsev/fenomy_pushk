@@ -1,4 +1,4 @@
-package com.anksystems.fenomy_pushk.lib
+package com.anksystems.lib
 
 interface Searchable<T> {
     fun compare(e:T): Boolean

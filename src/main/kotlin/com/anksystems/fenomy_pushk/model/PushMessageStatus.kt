@@ -1,6 +1,6 @@
 package com.anksystems.fenomy_pushk.model
 
-import com.anksystems.fenomy_pushk.lib.Searchable
+import com.anksystems.lib.Searchable
 
 data class PushMessageStatus(
     val id: String,
