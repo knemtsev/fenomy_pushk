@@ -5,8 +5,8 @@ import java.util.Properties
 
 plugins {
     application
-    id("org.springframework.boot") version "2.7.2"
-    id("io.spring.dependency-management") version "1.0.12.RELEASE"
+    id("org.springframework.boot") version "2.7.5"
+    id("io.spring.dependency-management") version "1.0.15.RELEASE"
     kotlin("jvm") version "1.7.10"
     kotlin("plugin.spring") version "1.7.10"
     kotlin("plugin.serialization") version "1.7.10"
@@ -40,12 +40,12 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
     implementation("org.jetbrains.kotlin:kotlin-stdlib")
     //implementation("org.projectlombok:lombok:1.18.24")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0-RC")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
 
 //    implementation("org.postgresql:postgresql")
 //    runtimeOnly("org.postgresql:postgresql:")
 
-    val exposedVer = "0.39.2"
+    val exposedVer = "0.40.1"
     implementation("org.jetbrains.exposed:exposed-core:$exposedVer")
     implementation("org.jetbrains.exposed:exposed-dao:$exposedVer")
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVer")
@@ -58,7 +58,7 @@ dependencies {
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
 
-    val configurationProcessor ="org.springframework.boot:spring-boot-configuration-processor:2.7.2"
+    val configurationProcessor ="org.springframework.boot:spring-boot-configuration-processor:2.7.5"
     kapt(configurationProcessor)
     annotationProcessor(configurationProcessor)
 
