@@ -208,10 +208,10 @@ class PGListenerService(
 
         try {
             val conn = ds.connection
-            val pgConn = conn.unwrap(PGConnection::class.java)
+            pgConn = conn.unwrap(PGConnection::class.java)
 
-            pgConn.addNotificationListener(notificationListener)
-            pgConn.createStatement().use { statement -> statement.execute("LISTEN push;") }
+            pgConn?.addNotificationListener(notificationListener)
+            pgConn?.createStatement().use { statement -> statement?.execute("LISTEN push;") }
 
         } catch (e: SQLException) {
             throw RuntimeException(e)
